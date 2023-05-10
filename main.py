@@ -11,6 +11,34 @@ f1_find=Entity(choose=False)
 t34_find=Entity(choose=False)
 ju87_zd_find=Entity(choose=False)
 tiger_find=Entity(choose=False)
+class life_bag(Entity):
+    def __init__(self,**kwargs):
+        super().__init__(**kwargs)
+        self.model='files/3d/food/help.obj'
+        self.scale=0.2
+        self.color=color.white
+        self.collider='box'
+    def update(self):
+        if distance(self,player)<3:
+            if player.hp<=490:
+                player.hp+=10
+            else:
+                if not player.god:
+                    player.hp=500
+            show_ppsh41.sl+=71
+            show_ptrd41.sl+=2
+            show_f1.sl+=1
+            if player.plane_zd<=250:
+                player.plane_zd+=50
+            else:
+                if not player.god:
+                    player.plane_zd=300
+            if t34.life<=4500:
+                t34.life+=500
+            else:
+                if not player.god:
+                    t34.life=5000
+            destroy(self)
 class dr_zd(Entity):
     def __init__(self,speed=1000,lifetime=7,**kwargs):
         super().__init__(**kwargs)
@@ -198,12 +226,7 @@ class dl_a(Entity):
                     self.look_at(player)
                     self.rotation_y+=90
                     self.start_killing=True
-        if self.dr_hp<=0 and self.dying==False:
-            self.dying=True
-            player.kill+=1
-            self.rotation_z=90
-            destroy(self,delay=2)
-        if self.start_killing or distance(self,player)<30:
+        if (self.start_killing or distance(self,player)<30)and not self.dying:
             self.look_at(zg_main)
             self.rotation_y+=90
             if self.on_cooldown==False and self.zd_cool==False:
@@ -218,6 +241,12 @@ class dl_a(Entity):
                         F1_main_right(world_position=self.world_position+(0,3,0),world_rotation=self.world_rotation-(0,90,0)-(((pow((self.x-player.x)**2+(self.z-player.z)**2,0.5)/2)/36)*0.3)+10)
                     invoke(setattr, self, 'on_cooldown', False, delay=10)
                     invoke(setattr, self, 'number_now', 30, delay=9)
+        if self.dr_hp<=0 and self.dying==False:
+            self.dying=True
+            player.kill+=1
+            self.rotation_z=90
+            life_bag(world_position=self.world_position)
+            destroy(self,delay=2)
 class tiger(Entity):
     def __init__(self,**kwargs):
         super().__init__(**kwargs)
@@ -665,7 +694,7 @@ def key_input(key):
             t34pt.color=color.white
         player.god=not player.god
         t34.can_throw=player.god
-    if key=='f'and distance(player,t34)<7 and player.air_time==0 and player.on_r==False and key_help.z==0 and player.on_eat==False:
+    if key=='f'and distance(player,t34)<7 and player.air_time==0 and player.on_r==False and key_help.z==0 and player.on_eat==False and t34.life>0:
         player.on_t34=not player.on_t34
         if player.on_t34:
             player.t34_audio.play()
@@ -859,6 +888,30 @@ def wq_6():
     show_t34_cjd.color=color.white50
     player.wq=6
 def update():
+    if player.hp<=0 and not player.god and player.died==False:
+        player.died=True
+        invoke(Audio, 'files/sound/no.ogg')
+    if player.on_t34 and not player.god and t34.life<=0:
+        player.t34_audio.stop()
+        ppsh41.enabled=True
+        ptrd41.enabled=False
+        f1.enabled=False
+        show_ppsh41.enabled=True
+        show_ptrd41.enabled=True
+        show_f1.enabled=True
+        show_plane_ctrl.enabled=True
+        show_t34_cjd.enabled=False
+        show_t34_zd.enabled=False
+        show_t34_life.enabled=False
+        show_plane_ctrl.color=color.white50
+        show_ppsh41.color=color.white
+        show_ptrd41.color=color.white50
+        show_f1.color=color.white50
+        player.wq=1
+        player.jump_height=9
+        player.speed=5
+        t34pt.collider='t34pt.obj'
+        t34p.collider='t34p.obj'
     if player.on_t34:
         player_t34_help.position=t34pt.world_position+(0,0.7,0)
         player.position=t34pt.world_position+(0,0.7,0)
@@ -1263,12 +1316,12 @@ def p_fire():
 app=Ursina()
 the_sky=Sky()
 stop_t34=Entity()
-main_ground=Entity(model='cube',scale=(100,1,100),collider="box",texture='files/image/td.png',texture_scale=(100,100,100),position=(0,0,0))
+main_ground=Entity(model='cube',scale=(600,1,600),collider="box",texture='files/image/td.png',texture_scale=(600,600,600),position=(0,0,0))
 main_ground2=Entity(model='cube',scale=(50,1,50),collider="box",texture='files/image/td.png',texture_scale=(50,50,50),position=(40,1,40),parent=stop_t34)
 main_ground3=Entity(model='cube',scale=(50,1,50),collider="box",texture='files/image/td.png',texture_scale=(50,50,50),position=(80,2,80),parent=stop_t34)
 jump_time=Entity()
 key_help.input=key_input
-player=FirstPersonController(y=750,hp=100,will_hp=0,plane_audio=Audio('fj.ogg',loop=True,autoplay=False,auto_destroy=False),t34_audio=Audio('fdj.ogg',loop=True,autoplay=False,auto_destroy=False),to_god=Audio('god.mp3',autoplay=False),plane_zd=300,wq=1,left_ing=False,on_r=False,on_eat=False,sl_food=5,god=False,on_t34=False,kill=0)
+player=FirstPersonController(x=-250,z=-250,hp=100,will_hp=0,plane_audio=Audio('fj.ogg',loop=True,autoplay=False,auto_destroy=False),t34_audio=Audio('fdj.ogg',loop=True,autoplay=False,auto_destroy=False),to_god=Audio('god.mp3',autoplay=False),plane_zd=300,wq=1,left_ing=False,on_r=False,on_eat=False,sl_food=5,god=False,on_t34=False,kill=0,died=False)
 player.camera_pivot.y=1
 zg_main=Entity(model='files/3d/zg/b.obj',parent=player,color=color.rgb(128,0,0),position=(0,0.9,0),collider='files/3d/zg/b.obj',hp_player=0)
 zg_a=Entity(model='files/3d/zg/a.obj',parent=zg_main,color=color.rgb(255,255,77))
@@ -1313,7 +1366,7 @@ f1b=Entity(model='f1b.obj',parent=f1,color=color.brown)
 tea=Entity(model='tea.obj',color=color.rgb(140,91,38),parent=camera,position=(-0.2,0,0.15),scale=0.05,rotation=(0,170,0),enabled=False)
 food_long=Entity(model='food_long.obj',position=(0.1,0,0.15),scale=0.05,rotation=(-45,90,0),color=color.rgb(140,81,38),parent=camera,enabled=False)
 fodd_main=Entity(model='food_main.obj',parent=food_long,color=color.white)
-t34=Entity(model='t34d.obj',collider='t34d.obj',rotation_y=-90,color=rgb(0,42,0),position=(10,3.3,0),speed=0,scale=0.7,can_throw=False,life=5000,hp_t34=0)
+t34=Entity(model='t34d.obj',collider='t34d.obj',rotation_y=-90,color=rgb(0,42,0),position=(-200,3.3,-250),speed=0,scale=0.7,can_throw=False,life=5000,hp_t34=0)
 t34pt=Entity(model='t34pt.obj',parent=t34,rotation_y=90,position=(0,1.8,3),collider='t34pt.obj',hp_t34=0)
 player_t34_help=Entity(collider='box',position=(10,5.8,3))
 t34p=Entity(model='t34p.obj',parent=t34pt,position=(-3,1.5,0),collider='t34p.obj',hp_t34=0)
@@ -1324,11 +1377,22 @@ show_t34_life=Text(text='+5000',color=color.green,scale=5,position=(0.35,0.15),e
 show_t34_life_background=Entity(model='quad',parent=show_t34_life,color=color.rgba(41,77,84,100),scale=(0.08,0.05),position=(0.035,-0.01))
 Audio('space.ogg',loop=True,autoplay=True,auto_destroy=False)
 dl_a(position=(random.randint(-50,50),2,random.randint(-50,50)))
-tiger(position=(50,2,50))
+tiger(position=(100,2,100))
 ju_87(position=(1000,150,1000))
-ju_87(position=(-1000,70,1000))
-ju_87(position=(1000,100,-1000))
-ju_87(position=(100,150,1000))
-ju_87(position=(-100,70,1000))
-ju_87(position=(100,100,-1000))
+y=1
+x=250
+z=250
+m = Entity(model='cube', scale=(10, 1, 10), color=color.white, texture="td.png", texture_scale=(10, 10),collider="box", position=(x, y, z))
+m = Entity(model='cube', scale=(10, 8, 1), color=color.white, texture="td.png", texture_scale=(10, 8),collider="box", position=(x, y + 3, z + 5))
+m = Entity(model='cube', scale=(10, 8, 1), color=color.white, texture="td.png", texture_scale=(10, 8),collider="box", position=(x, y + 3, z - 5))
+m = Entity(model='cube', scale=(1, 8, 10), color=color.white, texture="td.png", texture_scale=(10, 8),collider="box", position=(x + 5, y + 3, z))
+m = Entity(model='cube', scale=(1, 8, 4), color=color.white, texture="td.png", texture_scale=(8, 4),collider="box",position=(x - 5, y + 3, z + 3))
+m = Entity(model='cube', scale=(1, 8, 4), color=color.white, texture="td.png", texture_scale=(8, 4),collider="box",position=(x - 5, y + 3, z - 3))
+m = Entity(model='cube', scale=(1, 4, 2), color=color.white, texture="td.png", texture_scale=(4, 2),collider="box",position=(x - 5, y + 6, z))
+m = Entity(model='cube', scale=(10, 1, 8), color=color.white, texture="td.png", texture_scale=(10, 8),collider="box", position=(x, y + 6, z - 1))
+m = Entity(model='cube', scale=(1, 1, 2), color=color.white, texture="td.png", texture_scale=(2, 1),collider="box",position=(x + 4, y + 6, z + 4))
+m = Entity(model='cube', scale=(1, 1, 2), color=color.white, texture="td.png", texture_scale=(2, 1),collider="box",position=(x + 3, y + 5, z + 4))
+m = Entity(model='cube', scale=(1, 1, 2), color=color.white, texture="td.png", texture_scale=(2, 1),collider="box",position=(x + 2, y + 4, z + 4))
+m = Entity(model='cube', scale=(1, 1, 2), color=color.white, texture="td.png", texture_scale=(2, 1),collider="box",position=(x + 1, y + 3, z + 4))
+m = Entity(model='cube', scale=(1, 1, 2), color=color.white, texture="td.png", texture_scale=(2, 1),collider="box",position=(x, y + 2, z + 4))
 app.run()
