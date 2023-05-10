@@ -888,6 +888,14 @@ def wq_6():
     show_t34_cjd.color=color.white50
     player.wq=6
 def update():
+    if player.x>-200:
+        if random.randint(1,50)==1 and int(window.fps_counter.text)>40:
+            for x in range(10):
+                dl_a(position=(player.x+random.randint(-50,50),2,player.z+random.randint(-50,50)))
+            tiger(position=(player.x+random.randint(-100,100),2,player.z+random.randint(-100,100)))
+    if player.kill>=150 and not player.died and not player.win:
+        player.win=True
+        invoke(Audio, 'files/sound/winmusic.ogg')
     if player.hp<=0 and not player.god and player.died==False:
         player.died=True
         invoke(Audio, 'files/sound/no.ogg')
@@ -1142,8 +1150,6 @@ def update():
         invoke(ppsh41_zd.disable, delay=.01)
         invoke(Audio, 'jq.wav')
         show_t34_zd.sl-=1
-        if mouse.hovered_entity:
-            ...
     if camera.position==(0,0,0):
         zg_main.enabled=False
     else:
@@ -1321,7 +1327,7 @@ main_ground2=Entity(model='cube',scale=(50,1,50),collider="box",texture='files/i
 main_ground3=Entity(model='cube',scale=(50,1,50),collider="box",texture='files/image/td.png',texture_scale=(50,50,50),position=(80,2,80),parent=stop_t34)
 jump_time=Entity()
 key_help.input=key_input
-player=FirstPersonController(x=-250,z=-250,hp=100,will_hp=0,plane_audio=Audio('fj.ogg',loop=True,autoplay=False,auto_destroy=False),t34_audio=Audio('fdj.ogg',loop=True,autoplay=False,auto_destroy=False),to_god=Audio('god.mp3',autoplay=False),plane_zd=300,wq=1,left_ing=False,on_r=False,on_eat=False,sl_food=5,god=False,on_t34=False,kill=0,died=False)
+player=FirstPersonController(x=-250,z=-250,hp=100,will_hp=0,plane_audio=Audio('fj.ogg',loop=True,autoplay=False,auto_destroy=False),t34_audio=Audio('fdj.ogg',loop=True,autoplay=False,auto_destroy=False),to_god=Audio('god.mp3',autoplay=False),plane_zd=300,wq=1,left_ing=False,on_r=False,on_eat=False,sl_food=5,god=False,on_t34=False,kill=0,died=False,win=False)
 player.camera_pivot.y=1
 zg_main=Entity(model='files/3d/zg/b.obj',parent=player,color=color.rgb(128,0,0),position=(0,0.9,0),collider='files/3d/zg/b.obj',hp_player=0)
 zg_a=Entity(model='files/3d/zg/a.obj',parent=zg_main,color=color.rgb(255,255,77))
@@ -1376,9 +1382,8 @@ show_t34_speed = Button(scale=(0.3,0.05),text_scale=20,text_color=color.white,te
 show_t34_life=Text(text='+5000',color=color.green,scale=5,position=(0.35,0.15),enabled=False)
 show_t34_life_background=Entity(model='quad',parent=show_t34_life,color=color.rgba(41,77,84,100),scale=(0.08,0.05),position=(0.035,-0.01))
 Audio('space.ogg',loop=True,autoplay=True,auto_destroy=False)
-dl_a(position=(random.randint(-50,50),2,random.randint(-50,50)))
-tiger(position=(100,2,100))
-ju_87(position=(1000,150,1000))
+for x in range(5):
+    ju_87(position=(random.randint(900,1100),random.randint(70,150),random.randint(900,1100)))
 y=1
 x=250
 z=250
